@@ -671,6 +671,56 @@
             transform: translateX(8px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
+        
+        /* Habit Definition Styles */
+        .habit-definition {
+            display: none;
+            background: #f8f9fa;
+            border-left: 3px solid #6366F1;
+            padding: 10px 15px;
+            margin: 10px 0 5px 35px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #64748b;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .habit-definition.show {
+            display: block;
+        }
+        
+        .definition-toggle {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .definition-toggle:hover {
+            background: #cbd5e1;
+            transform: scale(1.05);
+        }
+        
+        .definition-toggle.active {
+            background: #6366F1;
+            color: white;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* Tips Button */
         .tips-button {
@@ -1019,6 +1069,11 @@
             <div class="todo-header">
                 <div class="todo-title">Daily Health Habits for <span id="currentPlayerName"></span></div>
                 <div class="streak-counter" id="streakCounter">🔥 0 day streak</div>
+            </div>
+            <div style="text-align: center; margin: 10px 0;">
+                <button class="definition-toggle" onclick="toggleAllDefinitions()" style="padding: 8px 16px; font-size: 0.9em;">
+                    📖 Show All Definitions
+                </button>
             </div>
             <div class="todo-list" id="todoList"></div>
         </div>
@@ -1664,6 +1719,49 @@
             const tipsEl = document.getElementById(`tips-${challengeIndex}`);
             tipsEl.classList.toggle('show');
         }
+        
+        // Definition Toggle Function
+        function toggleDefinition(definitionId, button) {
+            const definitionEl = document.getElementById(definitionId);
+            if (definitionEl) {
+                definitionEl.classList.toggle('show');
+                button.classList.toggle('active');
+                
+                // Update button text based on state
+                const isShowing = definitionEl.classList.contains('show');
+                button.innerHTML = isShowing ? '✖️' : 'ℹ️';
+            }
+        }
+        
+        // Toggle All Definitions
+        let allDefinitionsShown = false;
+        function toggleAllDefinitions() {
+            const definitions = document.querySelectorAll('.habit-definition');
+            const toggleButtons = document.querySelectorAll('.todo-item .definition-toggle');
+            const mainButton = event.target;
+            
+            allDefinitionsShown = !allDefinitionsShown;
+            
+            definitions.forEach(def => {
+                if (allDefinitionsShown) {
+                    def.classList.add('show');
+                } else {
+                    def.classList.remove('show');
+                }
+            });
+            
+            toggleButtons.forEach(btn => {
+                if (allDefinitionsShown) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '✖️';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = 'ℹ️';
+                }
+            });
+            
+            mainButton.innerHTML = allDefinitionsShown ? '📖 Hide All Definitions' : '📖 Show All Definitions';
+        }
 
         // Weekly Challenge Functions
         function updateWeeklyChallenges() {
@@ -1940,6 +2038,11 @@
                     }
                 });
                 
+                // Initialize dailyCompletions if it doesn't exist
+                if (!playerData.dailyCompletions) {
+                    playerData.dailyCompletions = {};
+                }
+                
                 // Save yesterday's progress to history if it exists
                 if (playerData.lastActiveDate && playerData.todoStatus) {
                     playerData.dailyCompletions[playerData.lastActiveDate] = {...playerData.todoStatus};
@@ -2085,11 +2188,16 @@
                     const todoItem = document.createElement('div');
                     todoItem.className = `todo-item ${isCompleted ? 'completed' : ''}`;
                     
+                    const definitionId = `definition-${day}`;
+                    
                     todoItem.innerHTML = `
                         <input type="checkbox" class="todo-checkbox" 
                                ${isCompleted ? 'checked' : ''} 
                                onchange="toggleTodo('${todoKey}', this.checked)">
                         <span class="todo-text">${challenge.title}</span>
+                        <button class="definition-toggle" onclick="toggleDefinition('${definitionId}', this)" title="Show/hide details">
+                            <span class="toggle-text">ℹ️</span>
+                        </button>
                         <span class="partner-status ${partnerCompleted ? 'completed' : 'pending'}">
                             ${playerNames[`player${currentPlayer === 1 ? 2 : 1}`]}: ${partnerCompleted ? '✓' : '○'}
                         </span>
@@ -2097,6 +2205,16 @@
                     `;
                     
                     todoList.appendChild(todoItem);
+                    
+                    // Add the definition div after the todo item
+                    const definitionDiv = document.createElement('div');
+                    definitionDiv.id = definitionId;
+                    definitionDiv.className = 'habit-definition';
+                    definitionDiv.innerHTML = `
+                        <strong>How to do it:</strong> ${challenge.description}
+                        ${challenge.tags ? `<br><em>Tags: ${challenge.tags.join(', ')}</em>` : ''}
+                    `;
+                    todoList.appendChild(definitionDiv);
                 }
             });
         }
