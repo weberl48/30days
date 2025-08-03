@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -16,8 +17,38 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --secondary-dark: #db2777;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -25,39 +56,57 @@
             justify-content: center;
             padding: 20px;
             transition: background 0.5s ease;
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease infinite;
         }
         
-        /* Player 1 Theme - Soft Blue/Gray */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Player 1 Theme - Modern Purple/Blue */
         body.player1-theme {
-            background: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 200%;
         }
         
-        /* Player 2 Theme - Soft Blue/Teal */
+        /* Player 2 Theme - Modern Pink/Orange */
         body.player2-theme {
-            background: linear-gradient(135deg, #A5D8FF 0%, #77E2D4 100%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #f093fb 100%);
+            background-size: 200% 200%;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
             padding: 40px;
             max-width: 900px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-xl), 0 0 100px rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
         
         h1 {
             text-align: center;
-            color: #333;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 10px;
-            font-size: 2em;
+            font-size: 2.5em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
         
         .subtitle {
             text-align: center;
-            color: #666;
-            margin-bottom: 20px;
+            color: var(--gray-600);
+            margin-bottom: 24px;
             font-size: 1.1em;
+            font-weight: 500;
         }
         
         .player-selector {
@@ -68,28 +117,35 @@
         }
         
         .player-tab {
-            padding: 10px 25px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 25px;
+            padding: 12px 28px;
+            background: var(--gray-100);
+            border: 2px solid transparent;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 1em;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
         
+        .player-tab:hover:not(.active) {
+            background: var(--gray-200);
+            transform: translateY(-2px);
+        }
+        
         .player-tab.active {
-            background: #667eea;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
         
         body.player1-theme .player-tab:first-child.active {
-            background: #64748B;
+            background: linear-gradient(135deg, #667eea, #764ba2);
         }
         
         body.player2-theme .player-tab:last-child.active {
-            background: #4ECDC4;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
         }
         
         .player-tab .emoji {
@@ -102,20 +158,40 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .setup-content {
             background: white;
-            padding: 40px;
-            border-radius: 20px;
+            padding: 48px;
+            border-radius: var(--radius-lg);
             max-width: 500px;
             width: 90%;
             text-align: center;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .setup-content h2 {
@@ -672,44 +748,83 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.1);
         }
         
-        /* Habit Definition Styles */
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background: white;
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            pointer-events: auto;
+            animation: slideInRight 0.3s ease;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.info { border-left-color: var(--primary); }
+        
+        .toast-icon { font-size: 1.5em; }
+        .toast-content { flex: 1; }
+        .toast-message { color: var(--gray-600); font-size: 0.95em; }
+        
+        /* Habit Definition Styles - Hoverable */
         .habit-definition {
             display: none;
-            background: #f8f9fa;
-            border-left: 3px solid #6366F1;
-            padding: 10px 15px;
-            margin: 10px 0 5px 35px;
-            border-radius: 4px;
+            position: absolute;
+            top: 100%;
+            left: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            margin-top: 8px;
             font-size: 0.9em;
-            color: #64748b;
-            animation: slideDown 0.3s ease;
+            color: var(--gray-600);
+            box-shadow: var(--shadow-lg);
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
         }
         
-        .habit-definition.show {
+        .todo-item {
+            position: relative;
+        }
+        
+        .todo-item:hover .habit-definition {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
         
-        .definition-toggle {
-            background: #e2e8f0;
-            color: #475569;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.75em;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: all 0.2s ease;
-        }
-        
-        .definition-toggle:hover {
-            background: #cbd5e1;
-            transform: scale(1.05);
-        }
-        
-        .definition-toggle.active {
-            background: #6366F1;
-            color: white;
-        }
+        /* Remove definition toggle button styles since we're using hover */
         
         @keyframes slideDown {
             from {
@@ -999,6 +1114,9 @@
     </style>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
     <!-- Connection Status Indicator -->
     <div class="connection-status disconnected" id="connectionStatus">
         🔴 Connecting...
@@ -1070,11 +1188,7 @@
                 <div class="todo-title">Daily Health Habits for <span id="currentPlayerName"></span></div>
                 <div class="streak-counter" id="streakCounter">🔥 0 day streak</div>
             </div>
-            <div style="text-align: center; margin: 10px 0;">
-                <button class="definition-toggle" onclick="toggleAllDefinitions()" style="padding: 8px 16px; font-size: 0.9em;">
-                    📖 Show All Definitions
-                </button>
-            </div>
+            <!-- Removed show all definitions button since we're using hover -->
             <div class="todo-list" id="todoList"></div>
         </div>
         
@@ -1163,6 +1277,36 @@
     </div>
     
     <script>
+        // Toast Notification System
+        function showToast(message, type = 'info', duration = 3000) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type]}</span>
+                <div class="toast-content">
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, duration);
+        }
+        
         // Firebase configuration for days-5850a
         const firebaseConfig = {
             apiKey: "AIzaSyBn5EgymjkRpfbUFIPB8Rz778-FB3BV_Ns",
@@ -1476,7 +1620,7 @@
 
         function copySessionCode() {
             navigator.clipboard.writeText(sessionCode).then(() => {
-                alert('Session code copied to clipboard! Share this with your partner.');
+                showToast('Session code copied! Share with your partner.', 'success');
             }).catch(() => {
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
@@ -1485,7 +1629,7 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                alert('Session code copied to clipboard! Share this with your partner.');
+                showToast('Session code copied! Share with your partner.', 'success');
             });
         }
 
@@ -1536,12 +1680,12 @@
             sessionRef.set(initialData).then(() => {
                 console.log('New session created successfully in Firebase');
                 if (!isInitializing) {
-                    alert('Challenge created! Share code: ' + sessionCode);
+                    showToast(`Challenge created! Code: ${sessionCode}`, 'success', 5000);
                 }
                 listenToSession();
             }).catch((error) => {
                 console.error('Error creating session:', error);
-                alert('Error creating session. Please check your internet connection.');
+                showToast('Error creating session. Check your connection.', 'error');
             });
         }
 
@@ -1571,12 +1715,12 @@
                     listenToSession();
                     setTimeout(() => { isInitializing = false; }, 500);
                 } else {
-                    alert('Session not found. Please check the code and try again.');
+                    showToast('Session not found. Check the code.', 'error');
                     console.log('Session not found for code:', code);
                 }
             }).catch((error) => {
                 console.error('Error connecting to session:', error);
-                alert('Error connecting to session. Please check your internet connection.');
+                showToast('Error connecting. Check your connection.', 'error');
             });
         }
 
@@ -1720,48 +1864,7 @@
             tipsEl.classList.toggle('show');
         }
         
-        // Definition Toggle Function
-        function toggleDefinition(definitionId, button) {
-            const definitionEl = document.getElementById(definitionId);
-            if (definitionEl) {
-                definitionEl.classList.toggle('show');
-                button.classList.toggle('active');
-                
-                // Update button text based on state
-                const isShowing = definitionEl.classList.contains('show');
-                button.innerHTML = isShowing ? '✖️' : 'ℹ️';
-            }
-        }
-        
-        // Toggle All Definitions
-        let allDefinitionsShown = false;
-        function toggleAllDefinitions() {
-            const definitions = document.querySelectorAll('.habit-definition');
-            const toggleButtons = document.querySelectorAll('.todo-item .definition-toggle');
-            const mainButton = event.target;
-            
-            allDefinitionsShown = !allDefinitionsShown;
-            
-            definitions.forEach(def => {
-                if (allDefinitionsShown) {
-                    def.classList.add('show');
-                } else {
-                    def.classList.remove('show');
-                }
-            });
-            
-            toggleButtons.forEach(btn => {
-                if (allDefinitionsShown) {
-                    btn.classList.add('active');
-                    btn.innerHTML = '✖️';
-                } else {
-                    btn.classList.remove('active');
-                    btn.innerHTML = 'ℹ️';
-                }
-            });
-            
-            mainButton.innerHTML = allDefinitionsShown ? '📖 Hide All Definitions' : '📖 Show All Definitions';
-        }
+        // Definitions are now shown on hover, no toggle functions needed
 
         // Weekly Challenge Functions
         function updateWeeklyChallenges() {
@@ -1897,7 +2000,7 @@
         function joinSession() {
             const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
             if (code.length !== 8) {
-                alert('Please enter a valid 8-character session code');
+                showToast('Please enter a valid 8-character code', 'warning');
                 return;
             }
             
@@ -2188,33 +2291,22 @@
                     const todoItem = document.createElement('div');
                     todoItem.className = `todo-item ${isCompleted ? 'completed' : ''}`;
                     
-                    const definitionId = `definition-${day}`;
-                    
                     todoItem.innerHTML = `
                         <input type="checkbox" class="todo-checkbox" 
                                ${isCompleted ? 'checked' : ''} 
                                onchange="toggleTodo('${todoKey}', this.checked)">
                         <span class="todo-text">${challenge.title}</span>
-                        <button class="definition-toggle" onclick="toggleDefinition('${definitionId}', this)" title="Show/hide details">
-                            <span class="toggle-text">ℹ️</span>
-                        </button>
                         <span class="partner-status ${partnerCompleted ? 'completed' : 'pending'}">
                             ${playerNames[`player${currentPlayer === 1 ? 2 : 1}`]}: ${partnerCompleted ? '✓' : '○'}
                         </span>
                         <span class="todo-day">Day ${day}</span>
+                        <div class="habit-definition">
+                            <strong>💡 How to do it:</strong> ${challenge.description}
+                            ${challenge.tags ? `<br><em style="color: var(--gray-500);">Tags: ${challenge.tags.join(', ')}</em>` : ''}
+                        </div>
                     `;
                     
                     todoList.appendChild(todoItem);
-                    
-                    // Add the definition div after the todo item
-                    const definitionDiv = document.createElement('div');
-                    definitionDiv.id = definitionId;
-                    definitionDiv.className = 'habit-definition';
-                    definitionDiv.innerHTML = `
-                        <strong>How to do it:</strong> ${challenge.description}
-                        ${challenge.tags ? `<br><em>Tags: ${challenge.tags.join(', ')}</em>` : ''}
-                    `;
-                    todoList.appendChild(definitionDiv);
                 }
             });
         }
@@ -2488,7 +2580,7 @@
             if (allCompleted && todayTodos.length > 0) {
                 celebrateDayCompletion();
                 setTimeout(() => {
-                    alert(`🎉 Great job ${playerNames[`player${currentPlayer}`]}! You've completed all habits for Day ${currentDay}!`);
+                    showToast(`🎉 Great job ${playerNames[`player${currentPlayer}`]}! Day ${currentDay} complete!`, 'success', 5000);
                 }, 700);
             }
         }
