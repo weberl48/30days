@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "challenges": {
+      "$sessionCode": {
+        ".read": "now < 1756526400000",
+        ".write": "now < 1756526400000",
+        ".validate": "$sessionCode.length >= 8 && $sessionCode.length <= 8"
+      }
+    }
+  }
+}

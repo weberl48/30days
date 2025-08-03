@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(firebase apps:sdkconfig:*)",
+      "Bash(firebase --version)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(mv:*)"
+    ],
+    "deny": []
+  }
+}

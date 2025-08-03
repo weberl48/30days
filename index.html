@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30-Day Health Challenge - Couples Edition</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+        
+        /* Player 1 Theme - Soft Blue/Gray */
+        body.player1-theme {
+            background: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+        }
+        
+        /* Player 2 Theme - Soft Blue/Teal */
+        body.player2-theme {
+            background: linear-gradient(135deg, #A5D8FF 0%, #77E2D4 100%);
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .player-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .player-tab {
+            padding: 10px 25px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .player-tab.active {
+            background: #667eea;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        body.player1-theme .player-tab:first-child.active {
+            background: #64748B;
+        }
+        
+        body.player2-theme .player-tab:last-child.active {
+            background: #4ECDC4;
+        }
+        
+        .player-tab .emoji {
+            margin-right: 5px;
+        }
+        
+        .setup-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .setup-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .setup-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .name-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        
+        .setup-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .setup-button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        /* Soft glow effects */
+        body.player1-theme .container {
+            box-shadow: 0 20px 60px rgba(100, 116, 139, 0.3);
+        }
+        
+        body.player2-theme .container {
+            box-shadow: 0 20px 60px rgba(78, 205, 196, 0.3);
+        }
+        
+        /* Tag colors remain vibrant but with slight adjustments for each theme */
+        body.player1-theme .tag.quick { background: #10B981; }
+        body.player1-theme .tag.mindful { background: #6366F1; }
+        body.player1-theme .tag.physical { background: #EF4444; }
+        body.player1-theme .tag.nutrition { background: #F59E0B; }
+        body.player1-theme .tag.social { background: #3B82F6; }
+        body.player1-theme .tag.challenge { background: #8B5CF6; }
+        body.player1-theme .tag.recovery { background: #06B6D4; }
+        
+        body.player2-theme .tag.quick { background: #66BB6A; }
+        body.player2-theme .tag.mindful { background: #AB47BC; }
+        body.player2-theme .tag.physical { background: #FF6E40; }
+        body.player2-theme .tag.nutrition { background: #FFA726; }
+        body.player2-theme .tag.social { background: #42A5F5; }
+        body.player2-theme .tag.challenge { background: #EC407A; }
+        body.player2-theme .tag.recovery { background: #26C6DA; }
+        
+        .day-display {
+            text-align: center;
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-weight: bold;
+            transition: color 0.5s ease;
+        }
+        
+        body.player1-theme .day-display {
+            color: #475569;
+        }
+        
+        body.player2-theme .day-display {
+            color: #4ECDC4;
+        }
+        
+        .challenge-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .challenge-card.hidden {
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        body.player1-theme .challenge-card.hidden {
+            background: #64748B;
+        }
+        
+        body.player2-theme .challenge-card.hidden {
+            background: #4ECDC4;
+        }
+        
+        .challenge-card.hidden:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .hidden-text {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .challenge-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .challenge-description {
+            color: #666;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+        
+        .tags-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .tag.quick { background: #4CAF50; color: white; }
+        .tag.mindful { background: #9C27B0; color: white; }
+        .tag.physical { background: #FF5722; color: white; }
+        .tag.nutrition { background: #FF9800; color: white; }
+        .tag.social { background: #2196F3; color: white; }
+        .tag.challenge { background: #E91E63; color: white; }
+        .tag.recovery { background: #00BCD4; color: white; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: all 0.5s ease;
+        }
+        
+        body.player1-theme .progress-fill {
+            background: linear-gradient(90deg, #94A3B8, #475569);
+        }
+        
+        body.player2-theme .progress-fill {
+            background: linear-gradient(90deg, #A5D8FF, #4ECDC4);
+        }
+        
+        .todo-container {
+            background: #f0f4f8;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        body.player1-theme .todo-container {
+            background: #F1F5F9;
+        }
+        
+        body.player2-theme .todo-container {
+            background: #F0FDFA;
+        }
+        
+        .todo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .todo-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+        }
+        
+        .streak-counter {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .todo-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .todo-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .todo-text {
+            flex: 1;
+            color: #333;
+        }
+        
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+        
+        .todo-day {
+            font-size: 0.8em;
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        .partner-status {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        
+        .partner-status.completed {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .partner-status.pending {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .comparison-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .player-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        body.player1-theme .comparison-section .player-card:first-child {
+            background: #F1F5F9;
+            border: 2px solid #94A3B8;
+        }
+        
+        body.player2-theme .comparison-section .player-card:last-child {
+            background: #F0FDFA;
+            border: 2px solid #A5D8FF;
+        }
+        
+        .player-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .player-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            transition: color 0.5s ease;
+        }
+        
+        body.player1-theme .stat-number {
+            color: #475569;
+        }
+        
+        body.player2-theme .stat-number {
+            color: #4ECDC4;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        body.player1-theme button:not(.reset-button):not(.player-tab) {
+            background: #64748B;
+        }
+        
+        body.player1-theme button:not(.reset-button):not(.player-tab):hover {
+            background: #475569;
+        }
+        
+        body.player2-theme button:not(.reset-button):not(.player-tab) {
+            background: #4ECDC4;
+        }
+        
+        body.player2-theme button:not(.reset-button):not(.player-tab):hover {
+            background: #38B2AC;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .reset-button {
+            background: #e74c3c;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .reset-button:hover {
+            background: #c0392b;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+
+        /* Connection Status Indicator */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.connected {
+            background: #10B981;
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: #EF4444;
+            color: white;
+        }
+
+        .connection-status.syncing {
+            background: #F59E0B;
+            color: white;
+        }
+
+        /* Partner Activity Animation */
+        .partner-activity {
+            position: relative;
+        }
+
+        .partner-activity::after {
+            content: '✨';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            animation: partnerPulse 1s ease-in-out;
+        }
+
+        @keyframes partnerPulse {
+            0% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+            50% { opacity: 1; transform: translateY(-50%) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+        }
+
+        /* Celebration Animations */
+        @keyframes confetti {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            z-index: 9999;
+            pointer-events: none;
+            animation: confetti 3s linear forwards;
+        }
+
+        .celebration {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        .streak-celebration {
+            animation: pulse 0.8s ease-in-out;
+        }
+
+        /* Visual Habit Chain */
+        .habit-chain {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            justify-content: center;
+        }
+
+        .chain-link {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .chain-link.completed {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .chain-link.current {
+            background: linear-gradient(135deg, #FF9800, #f57c00);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .chain-link.upcoming {
+            background: #e0e0e0;
+            color: #999;
+        }
+
+        .chain-link.missed {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .chain-link:hover {
+            transform: scale(1.2);
+        }
+
+        /* Smooth Micro-animations */
+        button {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+            transition: all 0.1s;
+        }
+
+        .todo-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .todo-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Tips Button */
+        .tips-button {
+            background: #6366F1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .tips-button:hover {
+            background: #5b5fc7;
+            transform: scale(1.05);
+        }
+
+        .tips-content {
+            background: #f0f4ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #374151;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .tips-content.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Partner Activity Feed */
+        .activity-feed {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .activity-text {
+            flex: 1;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .activity-time {
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        /* Weekly Challenge Badge */
+        .weekly-challenge {
+            background: linear-gradient(135deg, #8B5CF6, #A855F7);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .weekly-challenge:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .weekly-challenge.completed {
+            background: linear-gradient(135deg, #10B981, #059669);
+        }
+
+        /* Couple Challenge Badge */
+        .couple-challenge {
+            background: linear-gradient(135deg, #EC4899, #BE185D);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .couple-challenge:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+        }
+
+        .couple-challenge.completed {
+            background: linear-gradient(135deg, #10B981, #059669);
+        }
+
+        /* Session Code Display */
+        .session-display {
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .session-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #333;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #ccc;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+                max-width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+            }
+            
+            .player-tab {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            
+            .challenge-card {
+                padding: 20px;
+                min-height: 150px;
+            }
+            
+            .challenge-title {
+                font-size: 1.4em;
+            }
+            
+            .challenge-description {
+                font-size: 1em;
+            }
+            
+            .todo-container {
+                padding: 15px;
+            }
+            
+            .comparison-section {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            button {
+                padding: 15px 25px;
+                font-size: 1em;
+                min-height: 44px; /* Touch-friendly size */
+            }
+            
+            .session-code {
+                font-size: 1.1em;
+                letter-spacing: 2px;
+                padding: 15px;
+            }
+            
+            .day-display {
+                font-size: 2.5em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                margin: 5px;
+            }
+            
+            .player-selector {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .player-tab {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .challenge-card {
+                padding: 15px;
+            }
+            
+            .tags-container {
+                gap: 5px;
+            }
+            
+            .tag {
+                font-size: 0.8em;
+                padding: 4px 12px;
+            }
+            
+            /* Mobile Gesture Support */
+            .challenge-card {
+                touch-action: pan-y;
+            }
+            
+            .habit-chain {
+                gap: 6px;
+            }
+            
+            .chain-link {
+                width: 38px;
+                height: 38px;
+                font-size: 0.8em;
+                margin: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status Indicator -->
+    <div class="connection-status disconnected" id="connectionStatus">
+        🔴 Connecting...
+    </div>
+
+    <div class="setup-modal" id="setupModal">
+        <div class="setup-content">
+            <h2>Welcome to the 30-Day Health Challenge!</h2>
+            <p style="margin-bottom: 30px; color: #666;">Enter your names to begin your journey together</p>
+            <input type="text" class="name-input" id="player1Name" placeholder="Partner 1 Name" maxlength="20">
+            <input type="text" class="name-input" id="player2Name" placeholder="Partner 2 Name" maxlength="20">
+            <button class="setup-button" onclick="startChallenge()">Start Challenge Together! 💪</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>30-Day Health Challenge</h1>
+        <p class="subtitle">Building healthy habits together! 💑</p>
+        <p id="partnerStatus" style="text-align: center; color: #666; font-size: 0.9em; margin-top: -10px; margin-bottom: 20px;"></p>
+        
+        <div class="player-selector" id="playerSelector">
+            <button class="player-tab active" onclick="switchPlayer(1)">
+                <span class="emoji">👤</span><span id="player1TabName">Player 1</span>
+            </button>
+            <button class="player-tab" onclick="switchPlayer(2)">
+                <span class="emoji">👤</span><span id="player2TabName">Player 2</span>
+            </button>
+        </div>
+        
+        <div class="day-display" id="dayDisplay">Day 1</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 3.33%"></div>
+        </div>
+        
+        <div class="challenge-card hidden" id="challengeCard" onclick="revealChallenge()">
+            <div class="hidden-text">Click to reveal today's challenge!</div>
+        </div>
+        
+        <!-- Habit Chain Visual -->
+        <div class="habit-chain" id="habitChain"></div>
+        
+        <!-- Weekly Challenge -->
+        <div class="weekly-challenge" id="weeklyChallenge" onclick="toggleWeeklyChallenge()">
+            <strong>🎯 Weekly Bonus Challenge</strong>
+            <div id="weeklyText">Take a photo of your healthiest meal this week!</div>
+        </div>
+        
+        <!-- Couple Challenge -->
+        <div class="couple-challenge" id="coupleChallenge" onclick="toggleCoupleChallenge()">
+            <strong>💕 Couple Challenge</strong>
+            <div id="coupleText">Cook a healthy meal together this week!</div>
+        </div>
+        
+        <!-- Partner Activity Feed -->
+        <div class="activity-feed" id="activityFeed">
+            <h4 style="margin-bottom: 10px; color: #555;">💫 Recent Activity</h4>
+            <div id="activityList">
+                <div class="activity-item">
+                    <div class="activity-avatar">🎯</div>
+                    <div class="activity-text">Challenge started! Ready to build healthy habits together.</div>
+                    <div class="activity-time">Now</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="todo-container" id="todoContainer">
+            <div class="todo-header">
+                <div class="todo-title">Daily Health Habits for <span id="currentPlayerName"></span></div>
+                <div class="streak-counter" id="streakCounter">🔥 0 day streak</div>
+            </div>
+            <div class="todo-list" id="todoList"></div>
+        </div>
+        
+        <div class="comparison-section">
+            <div class="player-card">
+                <div class="player-name" id="player1DisplayName">Player 1</div>
+                <div class="player-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="player1Today">0</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="player1Streak">0</div>
+                        <div class="stat-label">Streak</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="player1Total">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+            <div class="player-card">
+                <div class="player-name" id="player2DisplayName">Player 2</div>
+                <div class="player-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="player2Today">0</div>
+                        <div class="stat-label">Today</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="player2Streak">0</div>
+                        <div class="stat-label">Streak</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="player2Total">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="nav-buttons">
+            <button id="prevButton" onclick="previousDay()" disabled title="Go to previous day">Previous Day</button>
+            <button id="nextButton" onclick="nextDay()" disabled title="Reveal today's challenge first">Next Day</button>
+        </div>
+        
+        <button class="reset-button" onclick="resetChallenge()">Start Over</button>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="showJoinModal()" style="background: #10B981; margin: 10px;">
+                🔗 Join Partner's Challenge
+            </button>
+        </div>
+        
+        <div class="session-display">
+            <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
+                Challenge started: <span id="startDate"></span>
+            </p>
+            <p style="color: #666; font-size: 0.9em; margin-bottom: 5px;">Session Code:</p>
+            <div class="session-code" id="sessionCode"></div>
+            <button onclick="copySessionCode()" style="background: #6366F1; padding: 8px 16px; font-size: 0.85em; margin-top: 8px;">
+                📋 Copy Code
+            </button>
+        </div>
+    </div>
+    
+    <!-- Join Session Modal -->
+    <div class="setup-modal hidden" id="joinModal">
+        <div class="setup-content">
+            <h2>Join Partner's Challenge</h2>
+            <p style="margin-bottom: 30px; color: #666;">Enter your partner's session code to sync your progress</p>
+            
+            <input type="text" id="joinSessionCode" placeholder="Enter 8-character session code" class="name-input" style="font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 3px; text-align: center;">
+            
+            <button onclick="joinSession()" style="background: #10B981; margin-top: 20px; padding: 15px 30px;">
+                🔗 Join Challenge
+            </button>
+            
+            <p style="color: #666; font-size: 0.9em; margin-top: 20px;">
+                Connection status: <span id="modalConnectionStatus">Disconnected</span>
+            </p>
+            
+            <button onclick="closeJoinModal()" style="background: #666; margin-top: 20px;">
+                Cancel
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase configuration for days-5850a
+        const firebaseConfig = {
+            apiKey: "AIzaSyBn5EgymjkRpfbUFIPB8Rz778-FB3BV_Ns",
+            authDomain: "days-5850a.firebaseapp.com",
+            databaseURL: "https://days-5850a-default-rtdb.firebaseio.com",
+            projectId: "days-5850a",
+            storageBucket: "days-5850a.firebasestorage.app",
+            messagingSenderId: "1071625366378",
+            appId: "1:1071625366378:web:0cea0c8f122e605a3bd313"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Global state
+        let isConnected = false;
+        let sessionCode = '';
+        let sessionRef = null;
+        let isInitializing = true;
+        
+        // Tips for each challenge (updated with latest changes)
+        const challengeTips = [
+            "Start immediately after waking up - don't overthink it! A made bed sets a productive tone.",
+            "Use a large water bottle and add lemon, cucumber, or mint for variety.",
+            "Step outside within 30 minutes of waking. Even cloudy days provide beneficial light.",
+            "Write them down! Physical writing activates different brain areas than typing.",
+            "Start with 15 seconds and gradually increase. Focus on deep breathing to manage the shock.",
+            "Focus on major muscle groups: neck, shoulders, back, hips, and legs.",
+            "Set the same bedtime and wake time even on weekends. Your body loves routine.",
+            "Park further away, take stairs, have walking meetings, or dance while doing chores.",
+            "Inhale for 4, hold for 4, exhale for 4, hold for 4. Do this 4 times whenever you feel stressed.",
+            "Make it part of your bedtime routine. Remember: healthy mouth = healthy heart.",
+            "Try the Headspace or Calm apps, or simply count breaths from 1 to 10 and repeat.",
+            "Keep a journal by your bed or desk. Morning clarity or evening reflection - you choose!",
+            "Break into sets: 10 morning, 10 afternoon, 10 evening, or do them during TV commercials.",
+            "Smile genuinely, give specific compliments, help without being asked, or write thank you notes.",
+            "Wake up 30 minutes earlier each day until you reach 5 AM. Use the time for yourself.",
+            "Put devices on airplane mode. Use this time for reading, planning, or connecting with family.",
+            "Use apps like MyFitnessPal or simply take photos of meals. Awareness is the first step.",
+            "Follow along with apps like 7 Minute Workout or Nike Training Club for guided routines.",
+            "Shop the perimeter of the grocery store. If it has more than 5 ingredients, skip it.",
+            "Delete apps, log out of accounts, or leave your phone in another room entirely.",
+            "Stop eating 3-4 hours before bedtime. Your digestion will thank you with better sleep.",
+            "Start with your toes and tense/relax each muscle group for 5 seconds, working up to your head.",
+            "Put phones in another room. Taste each bite and chew slowly for better digestion.",
+            "Practice guitar, sketching, cooking, or dancing. Progress matters more than perfection.",
+            "Start with 15 seconds and gradually increase. Focus on deep breathing to manage the shock.",
+            "Try push-ups, squats, planks, and lunges. Use your couch, wall, or stairs for variety.",
+            "Choose books that excite you. Mix fiction and non-fiction. Keep a book in multiple locations.",
+            "Use a pull-up bar or playground equipment. Start with assisted hangs if needed.",
+            "Find a local park, trail, or even sit under a tree. Focus on sounds, smells, and textures.",
+            "Make it a routine: morning ritual after waking, evening ritual before bed."
+        ];
+
+        // Weekly challenges that rotate
+        const weeklyChallenges = [
+            "Take a photo of your healthiest meal this week!",
+            "Do one random act of kindness together!",
+            "Try a new physical activity as a couple!",
+            "Have a phone-free date night!"
+        ];
+
+        // Couple challenges
+        const coupleChallenges = [
+            "Cook a healthy meal together this week!",
+            "Take a 30-minute walk together daily!",
+            "Give each other a 10-minute massage!",
+            "Plan your next adventure together!"
+        ];
+
+        // 30-Day Progressive Health Challenge
+        const challenges = [
+            // Days 1-10: Foundation Habits 🌱
+            {
+                title: "Make Your Bed",
+                description: "2-minute morning win that sets a productive tone. Studies show it correlates with better daily habits.",
+                tags: ["quick", "mindful"]
+            },
+            {
+                title: "Hydration Goal",
+                description: "64oz water (8 glasses) spread throughout the day. Keep a water bottle visible as your reminder.",
+                tags: ["nutrition", "quick"]
+            },
+            {
+                title: "10-Minute Morning Walk",
+                description: "Get sunlight + movement immediately after waking. Boosts mood, energy, and vitamin D.",
+                tags: ["physical", "morning"]
+            },
+            {
+                title: "Three Gratitudes",
+                description: "Write 3 specific things you're grateful for. Be detailed: \"My partner's laugh when...\" beats \"family.\"",
+                tags: ["quick", "mindful"]
+            },
+            {
+                title: "Sleep Schedule",
+                description: "Pick a bedtime/wake time and stick to it (even weekends!). 7-9 hours is the sweet spot.",
+                tags: ["recovery", "mindful"]
+            },
+            {
+                title: "Mindful Breathing",
+                description: "5 deep breaths before each meal (3x daily). Activates rest-and-digest mode.",
+                tags: ["mindful", "quick"]
+            },
+            {
+                title: "Phone-Free Mornings",
+                description: "No phone for first 30 minutes after waking. Reclaim your mental clarity.",
+                tags: ["mindful", "challenge"]
+            },
+            {
+                title: "Evening Stretch",
+                description: "10 minutes before bed. Focus on neck, shoulders, hips. YouTube \"bedtime stretching\" for guidance.",
+                tags: ["physical", "recovery"]
+            },
+            {
+                title: "Single-Task Eating",
+                description: "No multitasking during meals. Chew slowly, taste fully. Improves digestion and satisfaction.",
+                tags: ["mindful", "nutrition"]
+            },
+            {
+                title: "Daily Movement Goal",
+                description: "30 minutes of any movement. Walking counts! Dancing counts! Cleaning counts!",
+                tags: ["physical"]
+            },
+            // Days 11-20: Building Momentum 💪
+            {
+                title: "5-Minute Meditation",
+                description: "Use Insight Timer (free) or just count breaths. Same time daily for best results.",
+                tags: ["mindful", "quick"]
+            },
+            {
+                title: "Protein-First Breakfast",
+                description: "Start with 20-30g protein. Stabilizes energy and reduces cravings all day.",
+                tags: ["nutrition"]
+            },
+            {
+                title: "Nature Time",
+                description: "20 minutes outdoors, tech-free. Park bench, backyard, or trail - anywhere green counts.",
+                tags: ["mindful", "physical"]
+            },
+            {
+                title: "Evening Journal",
+                description: "3 prompts: What went well? What was challenging? What am I looking forward to?",
+                tags: ["mindful"]
+            },
+            {
+                title: "Cold Shower Finish",
+                description: "Last 30 seconds cold. Start with 10 seconds and build up. Game-changer for resilience.",
+                tags: ["physical", "challenge", "quick"]
+            },
+            {
+                title: "Strength Circuit",
+                description: "3 rounds: 10 pushups, 20 squats, 30-second plank. Modify as needed, consistency matters most.",
+                tags: ["physical", "quick"]
+            },
+            {
+                title: "Social Media Boundaries",
+                description: "Delete apps or use app timers. Limit to 30 minutes total daily.",
+                tags: ["mindful", "challenge"]
+            },
+            {
+                title: "10,000 Steps",
+                description: "Use phone tracker or watch. Take calls walking, park farther, use stairs. It adds up!",
+                tags: ["physical"]
+            },
+            {
+                title: "Reading Routine",
+                description: "20 minutes before bed. Fiction for relaxation, non-fiction for growth. No screens!",
+                tags: ["mindful"]
+            },
+            {
+                title: "Weekly Meal Prep",
+                description: "Spend 2 hours prepping healthy options. Future you will be grateful.",
+                tags: ["nutrition", "challenge"]
+            },
+            // Days 21-30: Advanced Optimization 🚀
+            {
+                title: "Intermittent Fasting",
+                description: "12-hour overnight fast (8pm-8am). Let your digestive system rest and reset.",
+                tags: ["nutrition", "challenge"]
+            },
+            {
+                title: "Morning Pages",
+                description: "3 pages stream-of-consciousness writing. Clear mental clutter before the day begins.",
+                tags: ["mindful", "morning"]
+            },
+            {
+                title: "Digital Sunset",
+                description: "All screens off 1 hour before bed. Use blue light filters after sunset if needed.",
+                tags: ["mindful", "challenge"]
+            },
+            {
+                title: "Skill Practice",
+                description: "15 minutes on something you want to improve. Compound interest applies to skills too.",
+                tags: ["mindful"]
+            },
+            {
+                title: "5AM Club",
+                description: "Early rising for uninterrupted focus time. Prep clothes and coffee the night before.",
+                tags: ["challenge", "morning"]
+            },
+            {
+                title: "Track Everything",
+                description: "One day of complete food/mood/energy tracking. Data reveals patterns.",
+                tags: ["mindful", "challenge"]
+            },
+            {
+                title: "Forest Bathing",
+                description: "30+ minutes in nature, engaging all senses. The Japanese call it medicine.",
+                tags: ["physical", "mindful", "recovery"]
+            },
+            {
+                title: "Acts of Service",
+                description: "One intentional kindness daily. Text encouragement, help a neighbor, surprise someone.",
+                tags: ["social", "mindful"]
+            },
+            {
+                title: "Complete Oral Care",
+                description: "Floss, brush (2 min), tongue scrape, mouthwash. Your mouth affects total body health.",
+                tags: ["quick", "recovery"]
+            },
+            {
+                title: "Design Tomorrow Tonight",
+                description: "Before bed, write tomorrow's top 3 priorities. Wake up with clarity and purpose.",
+                tags: ["mindful", "quick"]
+            }
+        ];
+        
+        // Local state variables
+        let currentPlayer = 1;
+        let currentDay = 1;
+        let challengeStartDate;
+        let playerNames = { player1: '', player2: '' };
+        let gameData = {
+            currentDay: 1,
+            revealedDays: [],
+            player1: {
+                todoStatus: {},
+                dailyCompletions: {},
+                lastActiveDate: null
+            },
+            player2: {
+                todoStatus: {},
+                dailyCompletions: {},
+                lastActiveDate: null
+            }
+        };
+
+        // Firebase Integration Functions
+        function initializeFirebase() {
+            // Monitor connection status
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snapshot) => {
+                isConnected = snapshot.val() === true;
+                updateConnectionStatus();
+            });
+        }
+
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connectionStatus');
+            const modalStatusEl = document.getElementById('modalConnectionStatus');
+            
+            if (isConnected) {
+                statusEl.className = 'connection-status connected';
+                statusEl.textContent = '🟢 Connected';
+                if (modalStatusEl) modalStatusEl.textContent = 'Connected';
+            } else {
+                statusEl.className = 'connection-status disconnected';
+                statusEl.textContent = '🔴 Offline';
+                if (modalStatusEl) modalStatusEl.textContent = 'Disconnected';
+            }
+        }
+
+        function generateSessionCode() {
+            // Generate a unique 8-character session code with timestamp component
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const timestamp = Date.now().toString(36).slice(-4).toUpperCase(); // Last 4 chars of timestamp
+            let result = timestamp;
+            
+            // Add 4 more random characters
+            for (let i = 0; i < 4; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            // Shuffle the result to make it less predictable
+            return result.split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        function initializeSession() {
+            // Check if we have an existing session code
+            const saved = localStorage.getItem('healthChallengeSessionCode');
+            if (saved) {
+                sessionCode = saved;
+                connectToSession(sessionCode);
+            } else {
+                // Generate new session code only if we have player names (i.e., challenge started)
+                if (playerNames.player1 || playerNames.player2) {
+                    sessionCode = generateSessionCode();
+                    localStorage.setItem('healthChallengeSessionCode', sessionCode);
+                    createNewSession();
+                }
+            }
+            if (sessionCode) {
+                displaySessionCode();
+            }
+        }
+
+        function displaySessionCode() {
+            document.getElementById('sessionCode').textContent = sessionCode;
+        }
+
+        function copySessionCode() {
+            navigator.clipboard.writeText(sessionCode).then(() => {
+                alert('Session code copied to clipboard! Share this with your partner.');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = sessionCode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Session code copied to clipboard! Share this with your partner.');
+            });
+        }
+
+        function createNewSession(forceCreate = false) {
+            if (!sessionCode) {
+                console.error('No session code available');
+                return;
+            }
+            
+            // If not connected yet, wait for connection
+            if (!isConnected) {
+                console.log('Waiting for Firebase connection before creating session...');
+                const checkConnection = setInterval(() => {
+                    if (isConnected) {
+                        clearInterval(checkConnection);
+                        createNewSession(forceCreate);
+                    }
+                }, 100);
+                return;
+            }
+            
+            console.log('Creating new session with code:', sessionCode);
+            sessionRef = database.ref(`challenges/${sessionCode}`);
+            
+            // Check if session already exists (unless forcing)
+            if (!forceCreate) {
+                sessionRef.once('value').then((snapshot) => {
+                    if (snapshot.exists()) {
+                        console.log('Session already exists, updating instead');
+                        syncToFirebase();
+                    } else {
+                        createNewSession(true); // Force create since it doesn't exist
+                    }
+                }).catch((error) => {
+                    console.error('Error checking session:', error);
+                });
+                return;
+            }
+            
+            const initialData = {
+                gameData: gameData,
+                playerNames: playerNames,
+                challengeStartDate: challengeStartDate || new Date().toDateString(),
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            sessionRef.set(initialData).then(() => {
+                console.log('New session created successfully in Firebase');
+                if (!isInitializing) {
+                    alert('Challenge created! Share code: ' + sessionCode);
+                }
+                listenToSession();
+            }).catch((error) => {
+                console.error('Error creating session:', error);
+                alert('Error creating session. Please check your internet connection.');
+            });
+        }
+
+        function connectToSession(code) {
+            if (!code) return;
+            
+            // If not connected yet, wait for connection
+            if (!isConnected) {
+                // Wait for Firebase to connect, then retry
+                const checkConnection = setInterval(() => {
+                    if (isConnected) {
+                        clearInterval(checkConnection);
+                        connectToSession(code);
+                    }
+                }, 100);
+                return;
+            }
+            
+            sessionRef = database.ref(`challenges/${code}`);
+            
+            // Check if session exists
+            sessionRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    console.log('Connected to existing session');
+                    isInitializing = true; // Prevent double updates
+                    loadFromFirebase(snapshot.val());
+                    listenToSession();
+                    setTimeout(() => { isInitializing = false; }, 500);
+                } else {
+                    alert('Session not found. Please check the code and try again.');
+                    console.log('Session not found for code:', code);
+                }
+            }).catch((error) => {
+                console.error('Error connecting to session:', error);
+                alert('Error connecting to session. Please check your internet connection.');
+            });
+        }
+
+        function listenToSession() {
+            if (!sessionRef) return;
+            
+            sessionRef.on('value', (snapshot) => {
+                if (snapshot.exists() && !isInitializing) {
+                    const data = snapshot.val();
+                    if (data.lastUpdated) {
+                        loadFromFirebase(data);
+                        showPartnerActivity();
+                    }
+                }
+                isInitializing = false;
+            });
+        }
+
+        function syncToFirebase() {
+            if (!isConnected || !sessionRef) {
+                // Cache the data locally if offline
+                saveToLocalStorage();
+                return;
+            }
+            
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = 'connection-status syncing';
+            statusEl.textContent = '🟡 Syncing...';
+            
+            const dataToSync = {
+                gameData: gameData,
+                playerNames: playerNames,
+                challengeStartDate: challengeStartDate,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            sessionRef.update(dataToSync).then(() => {
+                updateConnectionStatus();
+                saveToLocalStorage(); // Also save locally as cache
+            }).catch((error) => {
+                console.error('Error syncing to Firebase:', error);
+                updateConnectionStatus();
+            });
+        }
+
+        function loadFromFirebase(data) {
+            if (!data) return;
+            
+            // Update local state with Firebase data, ensuring proper structure
+            if (data.gameData) {
+                gameData = data.gameData;
+                // Ensure revealedDays is always an array
+                if (!gameData.revealedDays) {
+                    gameData.revealedDays = [];
+                }
+                // Ensure player data exists
+                if (!gameData.player1) {
+                    gameData.player1 = {
+                        todoStatus: {},
+                        dailyCompletions: {},
+                        lastActiveDate: null
+                    };
+                }
+                if (!gameData.player2) {
+                    gameData.player2 = {
+                        todoStatus: {},
+                        dailyCompletions: {},
+                        lastActiveDate: null
+                    };
+                }
+            }
+            
+            playerNames = data.playerNames || playerNames;
+            challengeStartDate = data.challengeStartDate;
+            currentDay = gameData.currentDay || 1;
+            
+            // Hide setup modal if it's showing
+            document.getElementById('setupModal').classList.add('hidden');
+            
+            // Update UI
+            updatePlayerNames();
+            updateDisplay();
+            
+            // Also save to localStorage as cache
+            saveToLocalStorage();
+        }
+
+        function showPartnerActivity() {
+            // Add subtle animation to show partner activity
+            const todoItems = document.querySelectorAll('.todo-item');
+            todoItems.forEach(item => {
+                item.classList.add('partner-activity');
+                setTimeout(() => {
+                    item.classList.remove('partner-activity');
+                }, 1000);
+            });
+        }
+
+        function showJoinModal() {
+            document.getElementById('joinModal').classList.remove('hidden');
+        }
+
+        function closeJoinModal() {
+            document.getElementById('joinModal').classList.add('hidden');
+        }
+
+        // Visual Habit Chain Functions
+        function updateHabitChain() {
+            const chainEl = document.getElementById('habitChain');
+            const playerData = gameData[`player${currentPlayer}`] || { todoStatus: {} };
+            
+            let chainHtml = '';
+            for (let day = 1; day <= 30; day++) {
+                const isCompleted = playerData.todoStatus[`day${day}`] || false;
+                const isCurrent = day === currentDay;
+                const isRevealed = gameData.revealedDays.includes(day);
+                
+                let className = 'chain-link ';
+                if (isCompleted) className += 'completed';
+                else if (isCurrent) className += 'current';
+                else if (isRevealed) className += 'upcoming';
+                else className += 'upcoming';
+                
+                chainHtml += `<div class="${className}" onclick="jumpToDay(${day})" title="Day ${day}">${day}</div>`;
+            }
+            chainEl.innerHTML = chainHtml;
+        }
+
+        function jumpToDay(day) {
+            if (day <= 30 && gameData.revealedDays.includes(day)) {
+                currentDay = day;
+                gameData.currentDay = currentDay;
+                syncToFirebase();
+                updateDisplay();
+            }
+        }
+
+        // Tips Toggle Function
+        function toggleTips(challengeIndex) {
+            const tipsEl = document.getElementById(`tips-${challengeIndex}`);
+            tipsEl.classList.toggle('show');
+        }
+
+        // Weekly Challenge Functions
+        function updateWeeklyChallenges() {
+            const weekNumber = Math.ceil(currentDay / 7) - 1;
+            const weeklyEl = document.getElementById('weeklyText');
+            const coupleEl = document.getElementById('coupleText');
+            const weeklyContainer = document.getElementById('weeklyChallenge');
+            const coupleContainer = document.getElementById('coupleChallenge');
+            
+            if (weekNumber < weeklyChallenges.length) {
+                weeklyEl.textContent = weeklyChallenges[weekNumber];
+                coupleEl.textContent = coupleChallenges[weekNumber];
+                
+                // Restore completion states
+                if (gameData.weeklyCompleted && gameData.weeklyCompleted[weekNumber]) {
+                    weeklyContainer.classList.add('completed');
+                } else {
+                    weeklyContainer.classList.remove('completed');
+                }
+                
+                if (gameData.coupleCompleted && gameData.coupleCompleted[weekNumber]) {
+                    coupleContainer.classList.add('completed');
+                } else {
+                    coupleContainer.classList.remove('completed');
+                }
+            }
+        }
+
+        function toggleWeeklyChallenge() {
+            const weeklyEl = document.getElementById('weeklyChallenge');
+            const weekNumber = Math.ceil(currentDay / 7) - 1;
+            
+            if (!gameData.weeklyCompleted) gameData.weeklyCompleted = {};
+            
+            const isCompleted = gameData.weeklyCompleted[weekNumber];
+            
+            if (isCompleted) {
+                gameData.weeklyCompleted[weekNumber] = false;
+                weeklyEl.classList.remove('completed');
+                addActivity('❌', `Weekly challenge unmarked by ${playerNames[`player${currentPlayer}`]}`);
+            } else {
+                gameData.weeklyCompleted[weekNumber] = true;
+                weeklyEl.classList.add('completed');
+                addActivity('🎯', `Weekly challenge completed by ${playerNames[`player${currentPlayer}`]}!`);
+                celebrateDayCompletion();
+            }
+            syncToFirebase();
+        }
+
+        function toggleCoupleChallenge() {
+            const coupleEl = document.getElementById('coupleChallenge');
+            const weekNumber = Math.ceil(currentDay / 7) - 1;
+            
+            if (!gameData.coupleCompleted) gameData.coupleCompleted = {};
+            
+            const isCompleted = gameData.coupleCompleted[weekNumber];
+            
+            if (isCompleted) {
+                gameData.coupleCompleted[weekNumber] = false;
+                coupleEl.classList.remove('completed');
+                addActivity('❌', `Couple challenge unmarked`);
+            } else {
+                gameData.coupleCompleted[weekNumber] = true;
+                coupleEl.classList.add('completed');
+                addActivity('💕', `Couple challenge completed together!`);
+                createConfetti();
+            }
+            syncToFirebase();
+        }
+
+        // Partner Activity Feed Functions
+        function addActivity(emoji, text) {
+            const activityList = document.getElementById('activityList');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const activityHtml = `
+                <div class="activity-item">
+                    <div class="activity-avatar">${emoji}</div>
+                    <div class="activity-text">${text}</div>
+                    <div class="activity-time">${timeStr}</div>
+                </div>
+            `;
+            
+            activityList.insertAdjacentHTML('afterbegin', activityHtml);
+            
+            // Keep only last 10 activities
+            const items = activityList.querySelectorAll('.activity-item');
+            if (items.length > 10) {
+                items[items.length - 1].remove();
+            }
+        }
+
+        // Mobile Gesture Support
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        function initializeGestures() {
+            const container = document.getElementById('challengeCard');
+            
+            container.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            container.addEventListener('touchend', (e) => {
+                if (!touchStartX || !touchStartY) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const diffX = touchStartX - touchEndX;
+                const diffY = touchStartY - touchEndY;
+                
+                // Only respond to horizontal swipes
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (Math.abs(diffX) > 50) { // Minimum swipe distance
+                        if (diffX > 0) {
+                            // Swipe left - next day
+                            if (currentDay < 30) nextDay();
+                        } else {
+                            // Swipe right - previous day
+                            if (currentDay > 1) previousDay();
+                        }
+                    }
+                }
+                
+                touchStartX = 0;
+                touchStartY = 0;
+            });
+        }
+
+        function joinSession() {
+            const code = document.getElementById('joinSessionCode').value.trim().toUpperCase();
+            if (code.length !== 8) {
+                alert('Please enter a valid 8-character session code');
+                return;
+            }
+            
+            console.log('Joining session with code:', code);
+            
+            // Clear any existing session
+            if (sessionRef) {
+                sessionRef.off(); // Stop listening to old session
+            }
+            
+            // Set new session code
+            sessionCode = code;
+            localStorage.setItem('healthChallengeSessionCode', code);
+            displaySessionCode();
+            
+            // Connect to the session
+            connectToSession(code);
+            closeJoinModal();
+        }
+        
+        // Legacy localStorage functions (now also serve as cache)
+        function saveToLocalStorage() {
+            const dataToSave = {
+                gameData,
+                playerNames,
+                challengeStartDate,
+                sessionCode
+            };
+            localStorage.setItem('healthChallengeData', JSON.stringify(dataToSave));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('healthChallengeData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                gameData = parsed.gameData || gameData;
+                playerNames = parsed.playerNames || playerNames;
+                challengeStartDate = parsed.challengeStartDate;
+                currentDay = gameData.currentDay || 1;
+                
+                // Hide setup modal and show player names if we have data
+                if (playerNames.player1 || playerNames.player2) {
+                    document.getElementById('setupModal').classList.add('hidden');
+                    updatePlayerNames();
+                }
+                return true;
+            }
+            return false;
+        }
+        
+        // Start challenge
+        function startChallenge() {
+            const name1 = document.getElementById('player1Name').value.trim() || 'Player 1';
+            const name2 = document.getElementById('player2Name').value.trim() || 'Player 2';
+            
+            playerNames = { player1: name1, player2: name2 };
+            challengeStartDate = new Date().toDateString();
+            
+            // Generate session code if we don't have one
+            if (!sessionCode) {
+                sessionCode = generateSessionCode();
+                localStorage.setItem('healthChallengeSessionCode', sessionCode);
+                displaySessionCode();
+            }
+            
+            // Save locally first
+            saveToLocalStorage();
+            
+            // Create or update Firebase session
+            if (isConnected) {
+                createNewSession();
+            } else {
+                // Will create session once connected
+                console.log('Will create Firebase session once connected');
+            }
+            
+            document.getElementById('setupModal').classList.add('hidden');
+            updatePlayerNames();
+            updateDisplay();
+        }
+        
+        // Update player names in UI
+        function updatePlayerNames() {
+            document.getElementById('player1TabName').textContent = playerNames.player1;
+            document.getElementById('player2TabName').textContent = playerNames.player2;
+            document.getElementById('player1DisplayName').textContent = playerNames.player1;
+            document.getElementById('player2DisplayName').textContent = playerNames.player2;
+            document.getElementById('currentPlayerName').textContent = playerNames[`player${currentPlayer}`];
+            
+            // Update partner status
+            const partnerStatusEl = document.getElementById('partnerStatus');
+            if (playerNames.player1 && playerNames.player2) {
+                if (sessionRef && isConnected) {
+                    partnerStatusEl.textContent = `${playerNames.player1} & ${playerNames.player2} - Synced ✓`;
+                    partnerStatusEl.style.color = '#10B981';
+                } else {
+                    partnerStatusEl.textContent = `${playerNames.player1} & ${playerNames.player2} - Connecting...`;
+                    partnerStatusEl.style.color = '#F59E0B';
+                }
+            } else {
+                partnerStatusEl.textContent = '';
+            }
+        }
+        
+        // Switch between players
+        function switchPlayer(player) {
+            currentPlayer = player;
+            document.querySelectorAll('.player-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.player-tab')[player - 1].classList.add('active');
+            
+            // Update theme
+            document.body.className = `player${player}-theme`;
+            
+            updateDisplay();
+        }
+        
+        // Get today's date key
+        function getTodayKey() {
+            return new Date().toDateString();
+        }
+        
+        // Check if we need to reset daily progress
+        function checkDailyReset() {
+            const today = getTodayKey();
+            const playerData = gameData[`player${currentPlayer}`];
+            
+            // Ensure revealedDays is always an array
+            if (!gameData.revealedDays) {
+                gameData.revealedDays = [];
+            }
+            
+            if (playerData && playerData.lastActiveDate !== today) {
+                // New day! Reset today's checkboxes but preserve history
+                const todayData = {};
+                gameData.revealedDays.forEach(day => {
+                    if (day <= currentDay) {
+                        todayData[`day${day}`] = false;
+                    }
+                });
+                
+                // Save yesterday's progress to history if it exists
+                if (playerData.lastActiveDate && playerData.todoStatus) {
+                    playerData.dailyCompletions[playerData.lastActiveDate] = {...playerData.todoStatus};
+                }
+                
+                // Reset today's todos
+                playerData.todoStatus = todayData;
+                playerData.lastActiveDate = today;
+                syncToFirebase(); // Use syncToFirebase instead of saveGameData
+            }
+        }
+        
+        // Calculate actual day number based on start date
+        function getActualDayNumber() {
+            if (!challengeStartDate) return 1;
+            const start = new Date(challengeStartDate);
+            const today = new Date();
+            const diffTime = Math.abs(today - start);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            return Math.min(diffDays + 1, 30);
+        }
+        
+        function updateDisplay() {
+            checkDailyReset();
+            
+            // Ensure we have at least day 1 revealed
+            if (gameData.revealedDays.length === 0 && playerNames.player1 && playerNames.player2) {
+                console.log('Auto-revealing Day 1 for new challenge');
+                gameData.revealedDays.push(1);
+                gameData.player1.todoStatus['day1'] = false;
+                gameData.player2.todoStatus['day1'] = false;
+                syncToFirebase();
+            }
+            
+            // Update current day based on actual date
+            const actualDay = getActualDayNumber();
+            if (actualDay > currentDay && gameData.revealedDays.includes(currentDay)) {
+                currentDay = actualDay;
+                gameData.currentDay = currentDay;
+                syncToFirebase();
+            }
+            
+            document.getElementById('dayDisplay').textContent = `Day ${currentDay}`;
+            document.getElementById('progressBar').style.width = `${(currentDay / 30) * 100}%`;
+            
+            const challenge = challenges[currentDay - 1];
+            const isRevealed = gameData.revealedDays.includes(currentDay);
+            
+            const card = document.getElementById('challengeCard');
+            
+            if (isRevealed) {
+                card.classList.remove('hidden');
+                card.onclick = null;
+                
+                const tagsHtml = challenge.tags.map(tag => 
+                    `<span class="tag ${tag}">${getTagEmoji(tag)} ${tag}</span>`
+                ).join('');
+                
+                card.innerHTML = `
+                    <div class="challenge-title">${challenge.title}
+                        <button class="tips-button" onclick="toggleTips(${currentDay - 1})">💡 Tips</button>
+                    </div>
+                    <div class="challenge-description">${challenge.description}</div>
+                    <div class="tags-container">${tagsHtml}</div>
+                    <div class="tips-content" id="tips-${currentDay - 1}">
+                        ${challengeTips[currentDay - 1]}
+                    </div>
+                `;
+                
+                // Enable next if current day is revealed and not last day
+                document.getElementById('nextButton').disabled = currentDay >= 30;
+            } else {
+                card.classList.add('hidden');
+                card.onclick = revealChallenge;
+                card.innerHTML = '<div class="hidden-text">Click to reveal today\'s challenge!</div>';
+                // Disable next only if current challenge not revealed
+                document.getElementById('nextButton').disabled = true;
+            }
+            
+            // Always enable previous if past day 1
+            document.getElementById('prevButton').disabled = currentDay <= 1;
+            
+            updateHabitChain();
+            updateWeeklyChallenges();
+            updateTodoList();
+            updateAllStats();
+            
+            // Update start date display
+            if (challengeStartDate) {
+                const startDate = new Date(challengeStartDate);
+                document.getElementById('startDate').textContent = startDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            }
+            
+            // Update current player name in todo header
+            document.getElementById('currentPlayerName').textContent = playerNames[`player${currentPlayer}`];
+        }
+        
+        function getTagEmoji(tag) {
+            const emojis = {
+                quick: '⚡',
+                mindful: '🧘',
+                physical: '💪',
+                nutrition: '🥗',
+                social: '👥',
+                challenge: '🎯',
+                recovery: '😌'
+            };
+            return emojis[tag] || '✨';
+        }
+        
+        function updateTodoList() {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+            
+            // Ensure gameData structure exists
+            if (!gameData.revealedDays) {
+                gameData.revealedDays = [];
+            }
+            
+            const playerData = gameData[`player${currentPlayer}`] || {
+                todoStatus: {},
+                dailyCompletions: {},
+                lastActiveDate: null
+            };
+            const partnerData = gameData[`player${currentPlayer === 1 ? 2 : 1}`] || {
+                todoStatus: {},
+                dailyCompletions: {},
+                lastActiveDate: null
+            };
+            
+            // Add all revealed challenges as todos
+            gameData.revealedDays.forEach(day => {
+                if (day <= currentDay) {
+                    const challenge = challenges[day - 1];
+                    const todoKey = `day${day}`;
+                    const isCompleted = playerData.todoStatus[todoKey] || false;
+                    const partnerCompleted = partnerData.todoStatus[todoKey] || false;
+                    
+                    const todoItem = document.createElement('div');
+                    todoItem.className = `todo-item ${isCompleted ? 'completed' : ''}`;
+                    
+                    todoItem.innerHTML = `
+                        <input type="checkbox" class="todo-checkbox" 
+                               ${isCompleted ? 'checked' : ''} 
+                               onchange="toggleTodo('${todoKey}', this.checked)">
+                        <span class="todo-text">${challenge.title}</span>
+                        <span class="partner-status ${partnerCompleted ? 'completed' : 'pending'}">
+                            ${playerNames[`player${currentPlayer === 1 ? 2 : 1}`]}: ${partnerCompleted ? '✓' : '○'}
+                        </span>
+                        <span class="todo-day">Day ${day}</span>
+                    `;
+                    
+                    todoList.appendChild(todoItem);
+                }
+            });
+        }
+        
+        function toggleTodo(todoKey, isChecked) {
+            const playerData = gameData[`player${currentPlayer}`];
+            playerData.todoStatus[todoKey] = isChecked;
+            
+            // Add activity to feed
+            const dayNum = todoKey.replace('day', '');
+            const challengeTitle = challenges[dayNum - 1]?.title || `Day ${dayNum}`;
+            const playerName = playerNames[`player${currentPlayer}`];
+            
+            if (isChecked) {
+                addActivity('✅', `${playerName} completed: ${challengeTitle}`);
+            } else {
+                addActivity('❌', `${playerName} unmarked: ${challengeTitle}`);
+            }
+            
+            syncToFirebase(); // Sync to Firebase for real-time updates
+            updateAllStats();
+            checkDayCompletion();
+        }
+        
+        function getStreakBadge(streak) {
+            if (streak >= 30) return '👑'; // Crown for 30 days
+            if (streak >= 21) return '💎'; // Diamond for 21 days
+            if (streak >= 14) return '🏆'; // Trophy for 14 days
+            if (streak >= 7) return '⭐'; // Star for 7 days
+            if (streak >= 3) return '🔥'; // Fire for 3 days
+            return '💪'; // Starting out
+        }
+
+        function getStreakColor(streak) {
+            if (streak >= 30) return '#FFD700'; // Gold
+            if (streak >= 21) return '#E6E6FA'; // Lavender
+            if (streak >= 14) return '#FF6B35'; // Orange
+            if (streak >= 7) return '#4ECDC4'; // Teal
+            if (streak >= 3) return '#FF4757'; // Red
+            return '#2ED573'; // Green
+        }
+
+        function updateAllStats() {
+            // Update stats for both players
+            updatePlayerStats(1);
+            updatePlayerStats(2);
+            
+            // Update current player's streak counter with badge
+            const streak = calculateStreak(currentPlayer);
+            const badge = getStreakBadge(streak);
+            const color = getStreakColor(streak);
+            
+            const streakText = streak === 0 ? 'Start your streak!' : 
+                              streak === 1 ? '1 day streak' : 
+                              `${streak} day streak`;
+            
+            const streakEl = document.getElementById('streakCounter');
+            streakEl.innerHTML = `${badge} ${streakText}`;
+            streakEl.style.color = color;
+            
+            // Celebrate milestone streaks
+            if (streak > 0 && (streak === 3 || streak === 7 || streak === 14 || streak === 21 || streak === 30)) {
+                celebrateStreak(streak);
+            }
+        }
+        
+        function updatePlayerStats(playerNum) {
+            const playerData = gameData[`player${playerNum}`];
+            
+            // If no player data, show zeros
+            if (!playerData) {
+                document.getElementById(`player${playerNum}Today`).textContent = 0;
+                document.getElementById(`player${playerNum}Streak`).textContent = 0;
+                document.getElementById(`player${playerNum}Total`).textContent = 0;
+                return;
+            }
+            
+            // Ensure data structures exist
+            if (!playerData.todoStatus) playerData.todoStatus = {};
+            if (!playerData.dailyCompletions) playerData.dailyCompletions = {};
+            if (!gameData.revealedDays) gameData.revealedDays = [];
+            
+            // Completed today
+            let completedToday = 0;
+            gameData.revealedDays.forEach(day => {
+                if (day <= currentDay && playerData.todoStatus[`day${day}`]) {
+                    completedToday++;
+                }
+            });
+            document.getElementById(`player${playerNum}Today`).textContent = completedToday;
+            
+            // Streak
+            const streak = calculateStreak(playerNum);
+            document.getElementById(`player${playerNum}Streak`).textContent = streak;
+            
+            // Total completed all time
+            const todoCount = Object.values(playerData.todoStatus).filter(status => status).length;
+            const historyCount = Object.values(playerData.dailyCompletions).reduce((sum, day) => {
+                if (typeof day === 'object' && day !== null) {
+                    return sum + Object.values(day).filter(status => status).length;
+                }
+                return sum;
+            }, 0);
+            const totalCompleted = todoCount + historyCount;
+            document.getElementById(`player${playerNum}Total`).textContent = totalCompleted;
+        }
+        
+        function calculateStreak(playerNum) {
+            const playerData = gameData[`player${playerNum}`];
+            if (!playerData || !challengeStartDate) return 0;
+            
+            // Ensure required data structures exist
+            if (!playerData.dailyCompletions) {
+                playerData.dailyCompletions = {};
+            }
+            if (!playerData.todoStatus) {
+                playerData.todoStatus = {};
+            }
+            if (!gameData.revealedDays) {
+                gameData.revealedDays = [];
+            }
+            
+            let streak = 0;
+            const today = new Date();
+            
+            // Check backwards from yesterday
+            for (let i = 1; i <= currentDay; i++) {
+                const checkDate = new Date(today);
+                checkDate.setDate(checkDate.getDate() - i);
+                const dateKey = checkDate.toDateString();
+                
+                const dayProgress = playerData.dailyCompletions[dateKey];
+                if (dayProgress) {
+                    const startDate = new Date(challengeStartDate);
+                    if (isNaN(startDate.getTime())) break; // Invalid date
+                    
+                    const dayNumber = Math.min(30, Math.floor((checkDate - startDate) / (1000 * 60 * 60 * 24)) + 1);
+                    const dayTodos = gameData.revealedDays.filter(d => d <= dayNumber);
+                    const allCompleted = dayTodos.every(d => dayProgress[`day${d}`]);
+                    
+                    if (allCompleted && dayTodos.length > 0) {
+                        streak++;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            // Check if today's tasks are all complete
+            const todayTodos = gameData.revealedDays.filter(d => d <= currentDay);
+            const todayAllComplete = todayTodos.every(d => playerData.todoStatus[`day${d}`]);
+            if (todayAllComplete && todayTodos.length > 0) {
+                streak++;
+            }
+            
+            return streak;
+        }
+        
+        function createConfetti() {
+            const colors = ['#667eea', '#764ba2', '#4CAF50', '#FF9800', '#E91E63', '#2196F3'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.parentNode.removeChild(confetti);
+                    }
+                }, 5000);
+            }
+        }
+
+        function celebrateStreak(streak) {
+            const streakEl = document.getElementById('streakCounter');
+            streakEl.classList.add('streak-celebration');
+            
+            setTimeout(() => {
+                streakEl.classList.remove('streak-celebration');
+            }, 800);
+            
+            // Show achievement message
+            const messages = {
+                3: { text: '🔥 3-day streak! You\'re on fire!', emoji: '🔥' },
+                7: { text: '⭐ Amazing! 1 week streak!', emoji: '⭐' },
+                14: { text: '🏆 Incredible! 2 weeks strong!', emoji: '🏆' },
+                21: { text: '💎 Outstanding! 3 weeks of dedication!', emoji: '💎' },
+                30: { text: '👑 LEGENDARY! 30-day champion!', emoji: '👑' }
+            };
+            
+            if (messages[streak]) {
+                const milestone = messages[streak];
+                setTimeout(() => {
+                    showStreakCelebration(milestone.text, milestone.emoji);
+                    if (streak >= 7) createConfetti();
+                    addActivity(milestone.emoji, `${playerNames[`player${currentPlayer}`]} achieved ${streak}-day streak!`);
+                }, 400);
+            }
+        }
+        
+        function showStreakCelebration(text, emoji) {
+            // Create a temporary celebration banner
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                font-size: 1em;
+                font-weight: bold;
+                text-align: center;
+                z-index: 1000;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-out 2.5s forwards;
+                max-width: 300px;
+            `;
+            banner.innerHTML = `<div style="font-size: 1.5em; margin-bottom: 5px;">${emoji}</div>${text}`;
+            
+            document.body.appendChild(banner);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (banner.parentNode) {
+                    banner.parentNode.removeChild(banner);
+                }
+            }, 3000);
+        }
+
+        function celebrateDayCompletion() {
+            // Animate the todo container
+            const todoContainer = document.getElementById('todoContainer');
+            todoContainer.classList.add('celebration');
+            
+            setTimeout(() => {
+                todoContainer.classList.remove('celebration');
+            }, 600);
+            
+            // Create small confetti burst
+            const colors = ['#4CAF50', '#2196F3', '#FF9800'];
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = '2s';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.parentNode.removeChild(confetti);
+                    }
+                }, 2500);
+            }
+        }
+
+        function checkDayCompletion() {
+            const playerData = gameData[`player${currentPlayer}`];
+            const todayTodos = gameData.revealedDays.filter(day => day <= currentDay);
+            const allCompleted = todayTodos.every(day => playerData.todoStatus[`day${day}`]);
+            
+            if (allCompleted && todayTodos.length > 0) {
+                celebrateDayCompletion();
+                setTimeout(() => {
+                    alert(`🎉 Great job ${playerNames[`player${currentPlayer}`]}! You've completed all habits for Day ${currentDay}!`);
+                }, 700);
+            }
+        }
+        
+        function revealChallenge() {
+            if (!gameData.revealedDays.includes(currentDay)) {
+                gameData.revealedDays.push(currentDay);
+                
+                // Initialize todo status for both players for this new challenge
+                gameData.player1.todoStatus[`day${currentDay}`] = false;
+                gameData.player2.todoStatus[`day${currentDay}`] = false;
+                
+                syncToFirebase(); // Sync challenge reveal to Firebase
+                updateDisplay();
+            }
+        }
+        
+        function nextDay() {
+            if (currentDay < 30) {
+                currentDay++;
+                gameData.currentDay = currentDay;
+                
+                // Auto-reveal the new day if not already revealed
+                if (!gameData.revealedDays.includes(currentDay)) {
+                    gameData.revealedDays.push(currentDay);
+                    gameData.player1.todoStatus[`day${currentDay}`] = false;
+                    gameData.player2.todoStatus[`day${currentDay}`] = false;
+                }
+                
+                syncToFirebase(); // Sync day navigation
+                updateDisplay();
+            }
+        }
+        
+        function previousDay() {
+            if (currentDay > 1) {
+                currentDay--;
+                gameData.currentDay = currentDay;
+                syncToFirebase(); // Sync day navigation
+                updateDisplay();
+            }
+        }
+        
+        function resetChallenge() {
+            if (confirm('Are you sure you want to start over? This will reset all progress for both players.')) {
+                // Reset Firebase data if connected
+                if (sessionRef && isConnected) {
+                    sessionRef.remove().then(() => {
+                        localStorage.removeItem('healthChallengeData');
+                        localStorage.removeItem('healthChallengeSessionCode');
+                        location.reload();
+                    }).catch((error) => {
+                        console.error('Error resetting Firebase data:', error);
+                        localStorage.removeItem('healthChallengeData');
+                        localStorage.removeItem('healthChallengeSessionCode');
+                        location.reload();
+                    });
+                } else {
+                    localStorage.removeItem('healthChallengeData');
+                    localStorage.removeItem('healthChallengeSessionCode');
+                    location.reload();
+                }
+            }
+        }
+        
+        // Initialize Firebase and App
+        function initializeApp() {
+            // Initialize Firebase connection monitoring
+            initializeFirebase();
+            
+            // Load data from localStorage first (offline-first approach)
+            if (!loadFromLocalStorage()) {
+                // No local data, show setup modal
+                document.getElementById('setupModal').classList.remove('hidden');
+            }
+            
+            // Initialize or connect to Firebase session
+            initializeSession();
+            
+            // Initialize mobile gestures
+            initializeGestures();
+            
+            // Set initial theme
+            document.body.className = 'player1-theme';
+            updateDisplay();
+        }
+        
+        // Start the app when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+        
+        // Also initialize immediately if DOM is already ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+    </script>
+</body>
+</html>

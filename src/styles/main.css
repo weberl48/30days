@@ -1,0 +1,326 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables for theming */
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --border-radius-lg: 1rem;
+  --border-radius-xl: 1.5rem;
+}
+
+/* Theme-specific variables */
+.player1-theme {
+  --theme-gradient: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+  --theme-primary: #64748B;
+  --theme-light: #F1F5F9;
+  --theme-accent: #475569;
+}
+
+.player2-theme {
+  --theme-gradient: linear-gradient(135deg, #A5D8FF 0%, #77E2D4 100%);
+  --theme-primary: #4ECDC4;
+  --theme-light: #F0FDFA;
+  --theme-accent: #38B2AC;
+}
+
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--theme-gradient, var(--primary-gradient));
+  min-height: 100vh;
+  transition: background 0.5s ease;
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+/* Custom animations */
+@keyframes bounce-in {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); opacity: 1; }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes confetti {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes subtle-highlight {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Utility classes */
+.animate-bounce-in {
+  animation: bounce-in 0.6s ease-in-out;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite;
+}
+
+.animate-highlight {
+  animation: subtle-highlight 0.3s ease-in-out;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Custom components */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.gradient-text {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+.shadow-medium {
+  box-shadow: var(--shadow-medium);
+}
+
+/* Button styles */
+.btn {
+  @apply px-6 py-3 rounded font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+}
+
+.btn-secondary {
+  @apply btn bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500;
+}
+
+.btn-success {
+  @apply btn bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+}
+
+.btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Card styles */
+.card {
+  @apply bg-white rounded-lg shadow overflow-hidden;
+}
+
+.card-header {
+  @apply p-6 border-b border-gray-200;
+}
+
+.card-body {
+  @apply p-6;
+}
+
+.card-footer {
+  @apply p-6 border-t border-gray-200 bg-gray-50;
+}
+
+/* Form styles */
+.form-input {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+/* Tag styles */
+.tag {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.tag-quick { @apply bg-yellow-100 text-yellow-800; }
+.tag-mindful { @apply bg-purple-100 text-purple-800; }
+.tag-physical { @apply bg-red-100 text-red-800; }
+.tag-nutrition { @apply bg-green-100 text-green-800; }
+.tag-social { @apply bg-blue-100 text-blue-800; }
+.tag-challenge { @apply bg-pink-100 text-pink-800; }
+.tag-recovery { @apply bg-indigo-100 text-indigo-800; }
+
+/* Progress bar */
+.progress-bar {
+  @apply w-full h-3 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.progress-fill {
+  @apply h-full bg-primary-600 transition-all duration-500 ease-out;
+}
+
+/* Habit chain */
+.habit-chain {
+  @apply flex flex-wrap gap-2 justify-center p-4 bg-gray-50 rounded;
+}
+
+.chain-link {
+  @apply w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-200 cursor-pointer;
+}
+
+.chain-link.completed {
+  @apply bg-green-600 text-white;
+}
+
+.chain-link.current {
+  @apply bg-blue-600 text-white;
+}
+
+.chain-link.upcoming {
+  @apply bg-gray-200 text-gray-600;
+}
+
+/* Loading states */
+.loading-spinner {
+  @apply animate-spin rounded-full border-4 border-gray-200 border-t-primary-500;
+}
+
+.skeleton {
+  @apply bg-gray-200 animate-pulse rounded;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .card {
+    @apply rounded-xl;
+  }
+  
+  .btn {
+    @apply px-4 py-2 text-sm;
+  }
+  
+  .habit-chain {
+    @apply gap-1;
+  }
+  
+  .chain-link {
+    @apply w-8 h-8 text-xs;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .auto-dark {
+    @apply bg-gray-800 text-white;
+  }
+  
+  .auto-dark .card {
+    @apply bg-gray-700;
+  }
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles */
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    @apply border-2 border-gray-800;
+  }
+  
+  .btn {
+    @apply border-2 border-current;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
